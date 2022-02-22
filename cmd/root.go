@@ -3,9 +3,18 @@ package cmd
 import (
 	"fmt"
 	"log"
+	"os"
+	"text/template"
 	"time"
 
 	"github.com/spf13/cobra"
+)
+
+// A go template compatible message
+var Message string
+
+const (
+	defaultMessage = "Stream will start again in {{ . }}"
 )
 
 // rootCmd represents the base command when called without any subcommands
@@ -26,16 +35,22 @@ func run(duration string) error {
 		return fmt.Errorf("parsing duration: %w", err)
 	}
 
+	Message = "\r" + Message
 	deadline := time.Now().Add(d)
 
 	for range time.Tick(1 * time.Second) {
 		if deadline.Before(time.Now()) {
 			break
 		}
-		fmt.Printf("\rStream will start again in: %s", time.Now().Sub(deadline).Truncate(time.Second)*-1)
+		t, err := template.New("message").Parse(Message)
+		if err != nil {
+			return fmt.Errorf("parsing template: %w", err)
+		}
+
+		t.Execute(os.Stdout, time.Now().Sub(deadline).Truncate(time.Second)*-1)
 	}
 	fmt.Println()
-	fmt.Println("Hello")
+	fmt.Println("Stream starting imminently")
 	return nil
 }
 
@@ -43,4 +58,8 @@ func run(duration string) error {
 // This is called by main.main(). It only needs to happen once to the rootCmd.
 func Execute() {
 	cobra.CheckErr(rootCmd.Execute())
+}
+
+func init() {
+	rootCmd.Flags().StringVarP(&Message, "message", "m", defaultMessage, "Message to display, must be a valid go template")
 }
