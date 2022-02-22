@@ -32,7 +32,7 @@ func run(duration string) error {
 		if deadline.Before(time.Now()) {
 			break
 		}
-		fmt.Printf("\rStream will start again in: %s", time.Now().Sub(deadline).Truncate(time.Second))
+		fmt.Printf("\rStream will start again in: %s", time.Now().Sub(deadline).Truncate(time.Second)*-1)
 	}
 	fmt.Println()
 	fmt.Println("Hello")
