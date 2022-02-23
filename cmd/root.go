@@ -47,7 +47,10 @@ func run(duration string) error {
 			return fmt.Errorf("parsing template: %w", err)
 		}
 
-		t.Execute(os.Stdout, time.Now().Sub(deadline).Truncate(time.Second)*-1)
+		err = t.Execute(os.Stdout, time.Since(deadline).Truncate(time.Second)*-1)
+		if err != nil {
+			return fmt.Errorf("executing template: %w", err)
+		}
 	}
 	fmt.Println()
 	fmt.Println("Stream starting imminently")
