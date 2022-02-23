@@ -9,3 +9,13 @@ A tool for streamers to say they'll brb with a countdown.
     - [ ] See if there's a way to display more information
 - [ ] Colour (doesn't seem to work with text/template?)
 - [ ] Prettier print
+
+## Install
+
+### From Source
+
+Requires Go
+
+```sh
+go install .
+```
