@@ -14,8 +14,6 @@ import (
 )
 
 var (
-	// cfg file
-	cfgFile string
 	// A go template compatible message
 	Message string
 )
@@ -121,19 +119,14 @@ func init() {
 }
 
 func initConfig() {
-	if cfgFile != "" {
-		// Use config file from the flag.
-		viper.SetConfigFile(cfgFile)
-	} else {
-		// Find home directory.
-		home, err := os.UserHomeDir()
-		cobra.CheckErr(err)
+	// Find home directory.
+	home, err := os.UserHomeDir()
+	cobra.CheckErr(err)
 
-		// Search config in home directory with name ".brb" (without extension).
-		viper.AddConfigPath(home)
-		viper.SetConfigType("yaml")
-		viper.SetConfigName(".brb")
-	}
+	// Search config in home directory with name ".brb" (without extension).
+	viper.AddConfigPath(home)
+	viper.SetConfigType("yaml")
+	viper.SetConfigName(".brb")
 
 	viper.AutomaticEnv()
 
