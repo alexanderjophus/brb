@@ -3,6 +3,7 @@ module github.com/trelore/brb
 go 1.17
 
 require (
+	github.com/g8rswimmer/go-twitter/v2 v2.0.0-beta12
 	github.com/gosuri/uilive v0.0.4
 	github.com/nicklaw5/helix/v2 v2.3.0
 	github.com/spf13/cobra v1.3.0

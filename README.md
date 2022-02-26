@@ -6,7 +6,7 @@ A tool for streamers to say they'll brb with a countdown.
 
 - [x] Customizable messages
 - [x] Twitch follower count
-- [ ] Twitter follower count
+- [x] Twitter follower count
 - [x] Set up a `~/.brb` file for reading secrets
 - [ ] Prettier print
 
@@ -37,4 +37,13 @@ twitchclientid: <twitchclientid>
 twitchclientsecret: <twitchclientsecret>
 twitchappaccesstoken: <twitchappaccesstoken>
 twitchuserid: <twitchuserid>
+```
+
+### Twitter follower count
+
+To enable twitter follower count, you need to set 2 variables in a `~/.brb` file
+
+```sh
+twitterbearertoken: <twitterbearertoken>
+twitterusername: <twitterusername>
 ```

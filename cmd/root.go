@@ -1,12 +1,15 @@
 package cmd
 
 import (
+	"context"
 	"fmt"
 	"log"
+	"net/http"
 	"os"
 	"text/template"
 	"time"
 
+	twitter "github.com/g8rswimmer/go-twitter/v2"
 	"github.com/gosuri/uilive"
 	helix "github.com/nicklaw5/helix/v2"
 	"github.com/spf13/cobra"
@@ -19,8 +22,9 @@ var (
 )
 
 const (
-	defaultMessage = `Stream will start again in {{ .Countdown }}
-{{ if .TwitchFollowerCount }}Twitch followers: {{ .TwitchFollowerCount }}{{ end }}`
+	defaultMessage = `Stream will continue in {{ .Countdown }}
+{{ if .TwitchFollowerCount }}Twitch followers: {{ .TwitchFollowerCount }}{{ end }}
+{{ if .TwitterFollowerCount }}Twitter followers: {{ .TwitterFollowerCount }}{{ end }}`
 )
 
 // rootCmd represents the base command when called without any subcommands
@@ -36,8 +40,17 @@ var rootCmd = &cobra.Command{
 }
 
 type Output struct {
-	Countdown           time.Duration
-	TwitchFollowerCount int
+	Countdown            time.Duration
+	TwitchFollowerCount  int
+	TwitterFollowerCount int
+}
+
+type authorize struct {
+	Token string
+}
+
+func (a authorize) Add(req *http.Request) {
+	req.Header.Add("Authorization", fmt.Sprintf("Bearer %s", a.Token))
 }
 
 func run(duration string) error {
@@ -68,6 +81,26 @@ func run(duration string) error {
 			return fmt.Errorf("getting followers: %w", err)
 		}
 		o.TwitchFollowerCount = resp.Data.Total
+	}
+
+	if twitterEnabled() {
+		client := &twitter.Client{
+			Authorizer: authorize{
+				Token: viper.GetString("twitterbearertoken"),
+			},
+			Client: http.DefaultClient,
+			Host:   "https://api.twitter.com",
+		}
+		tu, err := client.UserNameLookup(context.Background(), []string{viper.GetString("twitterusername")}, twitter.UserLookupOpts{
+			UserFields: []twitter.UserField{
+				twitter.UserFieldPublicMetrics,
+			},
+		})
+		if err != nil {
+			return fmt.Errorf("getting twitter user: %w", err)
+		}
+
+		o.TwitterFollowerCount = tu.Raw.Users[0].PublicMetrics.Followers
 	}
 
 	w := uilive.New()
@@ -101,6 +134,11 @@ func twitchEnabled() bool {
 		viper.GetString("twitchuserid") != ""
 }
 
+func twitterEnabled() bool {
+	return viper.GetString("twitterbearertoken") != "" &&
+		viper.GetString("twitterusername") != ""
+}
+
 // Execute adds all child commands to the root command and sets flags appropriately.
 // This is called by main.main(). It only needs to happen once to the rootCmd.
 func Execute() {
@@ -116,6 +154,8 @@ func init() {
 	viper.BindPFlag("twitchclientsecret", rootCmd.PersistentFlags().Lookup("twitchclientsecret"))
 	viper.BindPFlag("twitchappaccesstoken", rootCmd.PersistentFlags().Lookup("twitchappaccesstoken"))
 	viper.BindPFlag("twitchuserid", rootCmd.PersistentFlags().Lookup("twitchuserid"))
+	viper.BindPFlag("twitterbearertoken", rootCmd.PersistentFlags().Lookup("twitterbearertoken"))
+	viper.BindPFlag("twitterusername", rootCmd.PersistentFlags().Lookup("twitterusername"))
 }
 
 func initConfig() {
